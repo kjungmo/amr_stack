@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+*.egg-link
+build/
+dist/
+logs/
+.cache/
+.pytest_cache/
+maps/*.pgm
+maps/*.yaml
+!maps/.gitkeep
