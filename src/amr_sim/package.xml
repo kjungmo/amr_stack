@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>amr_sim</name>
+  <version>0.1.0</version>
+  <description>
+    2-D simulator for the AMR stack (C++/ROS 2 port of amr/sim): rasterized
+    ground-truth world, differential-drive exact-arc kinematics, vectorized
+    ray-cast lidar, footprint collision, and seeded noisy odometry. Library plus
+    a thin sim_node that publishes /scan, /odom, /ground_truth and tf.
+  </description>
+  <maintainer email="kangjmo91@gmail.com">Kang Jung Mo</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>amr_core</depend>
+  <depend>amr_mapping</depend>
+  <depend>rclcpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>tf2</depend>
+  <depend>tf2_ros</depend>
+  <depend>tf2_geometry_msgs</depend>
+
+  <test_depend>ament_cmake_gtest</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
