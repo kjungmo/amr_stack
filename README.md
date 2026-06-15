@@ -1,172 +1,111 @@
-# amr-stack
+# AMR Stack — ROS 2 Humble (C++)
 
-A self-contained, pip-installable Python package implementing a complete autonomous mobile robot
-software stack in pure Python (no ROS, no scipy).
+A complete, self-contained Autonomous Mobile Robot (AMR) software stack for **ROS 2
+Humble**, written in idiomatic C++. It is a faithful port of the pure-Python
+[`amr_stack`](https://github.com/kjungmo/amr_stack) reference implementation (the
+`main` branch): same algorithms, same constants, same coordinate conventions,
+re-expressed as proper ROS 2 packages (rclcpp nodes, custom messages/actions,
+tf2, launch files, RViz, gtest + launch_testing).
 
-**Version:** 0.1.0  
-**Python:** 3.8.10  **numpy:** 1.17.4  **GUI:** tkinter (stdlib)
+> Branches: **`main`** — the Python reference. **`humble`** (this branch) — the
+> C++/ROS 2 Humble port. **`jazzy`** — the same workspace targeting ROS 2 Jazzy.
 
----
+## What's inside
 
-## Capabilities
+A 2-D differential-drive robot with a 360° lidar, simulated, mapped (SLAM),
+localized (MCL), and navigated (A* + DWA) end to end — plus an RViz HRI panel.
 
-| Capability | Delivered by | Proven by |
-|---|---|---|
-| Mapping | `amr.mapping` — log-odds occupancy grid + ROS-format map I/O | `test_mapper.py`, `test_map_io.py` |
-| Configuration via file | `amr.core.config` + `configs/*.yaml` + `--set` overrides | `test_config.py` |
-| Logging | `amr.core.log` — console + rotating file + per-module levels + GUI handler | `test_log.py` |
-| Planning | `amr.planning` — inflated costmap + A* global + DWA local planner | `test_costmap.py`, `test_astar.py`, `test_dwa.py` |
-| Localization | `amr.localization` — MCL particle filter, likelihood-field sensor model | `test_mcl.py` |
-| SLAM | `amr.slam` — correlative scan-matching SLAM + log-odds map | `test_slam.py` |
-| Simulation | `amr.sim` — diff-drive kinematics, vectorized lidar, odom noise, collisions | `test_sim.py` |
-| Deployment | `deploy/` — Dockerfile, docker-compose, systemd unit, install.sh | Task 4.2 static checks |
-| Setup | `scripts/setup.sh`, `Makefile`, `pyproject.toml` | Gate A |
-| GUI / HRI | `amr.gui` — tkinter console: live map, particles, path, click-to-goal, teleop, e-stop, log | `test_gui_smoke.py` |
+| Package | Role |
+|---|---|
+| `amr_core` | Shared library: geometry, types, config (yaml-cpp). No ROS deps. |
+| `amr_interfaces` | `SaveMap` service + `NavigateToGoal` action. |
+| `amr_sim` | 2-D simulator node (`/scan`, `/odom`, `/ground_truth`, tf) + `world_to_map` tool. |
+| `amr_mapping` | Log-odds occupancy mapper + map I/O (ROS map_server PGM/YAML); `map_publisher` node. |
+| `amr_localization` | Likelihood-field MCL; `mcl_node`. |
+| `amr_slam` | Correlative scan-matching SLAM; `slam_node` (+ `/save_map`). |
+| `amr_planning` | Costmap inflation + A* + DWA (library). |
+| `amr_navigation` | Navigation FSM + `NavigateToGoal` action server; `navigator_node`. |
+| `amr_bringup` | Launch files, params, RViz config, integration tests. |
+| `amr_hri` | RViz `Panel` plugin (goal entry, E-STOP, nav-state). |
 
----
+**Design rule:** *algorithm = library; ROS wiring = thin node.* Every package has
+a unit-testable `*_lib` target (gtests, no running node) plus an rclcpp node that
+wraps it. See [`CONTRACT.md`](CONTRACT.md) for the frozen architecture spec and
+[`EXTENDING.md`](EXTENDING.md) for how to add your own modules.
 
-## Quickstart
+## Build & test
 
-```bash
-# 1. Create the venv and install the package
-make setup
-
-# 2. Run the full test suite (43 tests)
-make test
-
-# 3. Run the full autonomy demo:
-#    SLAM a mission → save map → navigate two goals → print DEMO PASS
-make demo
-
-# 4. Launch the interactive HRI GUI (requires a display)
-make gui
-```
-
-The setup script handles Ubuntu 20.04's broken `ensurepip` automatically via a `get-pip.py`
-bootstrap. System numpy and PyYAML are reused via `--system-site-packages`; only pytest is
-fetched from PyPI.
-
----
-
-## CLI Reference
-
-All commands share these global flags:
-
-```
-amr [--config PATH] [--set KEY=VAL ...] [--log-level LEVEL] <subcommand>
-```
-
-| Flag | Default | Description |
-|---|---|---|
-| `--config PATH` | `configs/default.yaml` (if present) | YAML config file to load |
-| `--set KEY=VAL` | — | Dotted override, repeatable: e.g. `--set slam.match_beams=60` |
-| `--log-level LEVEL` | value in config | Shorthand for `--set logging.level=LEVEL` |
-| `--version` | — | Print `amr-stack 0.1.0` and exit |
-
-### `amr slam`
-
-Run a SLAM mapping mission and save the resulting map.
-
-```
-amr slam --mission PATH --out STEM [--max-time SECONDS]
-```
-
-| Argument | Default | Description |
-|---|---|---|
-| `--mission PATH` | required | Mission YAML file with `waypoints` list |
-| `--out STEM` | required | Output map stem (produces `STEM.pgm` and `STEM.yaml`) |
-| `--max-time S` | 240 | Sim-time ceiling in seconds |
-
-Exits 0 when the mission completes before the time ceiling; exits 1 otherwise (but still saves
-the map). Prints the final pose error vs ground truth.
-
-### `amr nav`
-
-Localize on a static map and navigate a sequence of goals.
-
-```
-amr nav --map YAML --goal X,Y [--goal X,Y ...] [--max-time SECONDS]
-```
-
-| Argument | Default | Description |
-|---|---|---|
-| `--map YAML` | required | Map YAML file (produced by `amr slam --out`) |
-| `--goal X,Y` | required | Goal coordinate in world meters, repeatable |
-| `--max-time S` | 180 | Sim-time budget per goal |
-
-Goals are executed in sequence. Exits 0 iff every goal reaches `SUCCEEDED`.
-
-### `amr demo`
-
-Full pipeline: SLAM mapping mission → save map → navigate two goals.
-
-```
-amr demo [--out-dir DIR]
-```
-
-| Argument | Default | Description |
-|---|---|---|
-| `--out-dir DIR` | `maps` | Directory for the saved map files |
-
-Prints `DEMO PASS` (exit 0) or `DEMO FAIL` (exit 1).
-
-### `amr gui`
-
-Launch the interactive tkinter HRI console.
-
-```
-amr gui [--map YAML]
-```
-
-| Argument | Default | Description |
-|---|---|---|
-| `--map YAML` | — | If given, starts in NAV mode on this map; otherwise starts in SLAM mode |
-
-Requires a display (`DISPLAY` environment variable). On WSL2 with WSLg set `DISPLAY=:0.0`.
-
----
-
-## Repository Layout
-
-```
-amr_stack/
-├── pyproject.toml  setup.py  Makefile  .gitignore  README.md
-├── configs/
-│   ├── default.yaml                  # complete reference config (mirrors dataclass defaults)
-│   ├── worlds/office.yaml            # 12 × 9 m two-room office world
-│   └── missions/office_mapping.yaml  # waypoint mission used by demo and e2e test
-├── maps/                             # generated maps land here (gitignored)
-├── scripts/setup.sh
-├── deploy/Dockerfile  docker-compose.yaml  amr.service  install.sh
-├── docs/architecture.md  configuration.md  user_guide.md  plans/
-├── amr/
-│   ├── __init__.py              # __version__ = "0.1.0"
-│   ├── cli.py
-│   ├── core/    types.py  geometry.py  config.py  log.py
-│   ├── sim/     world.py  robot.py  lidar.py  simulator.py
-│   ├── mapping/ map_io.py  occupancy_grid_mapper.py
-│   ├── slam/    scan_matching_slam.py
-│   ├── localization/ motion_model.py  sensor_model.py  mcl.py
-│   ├── planning/ costmap.py  astar.py  dwa.py
-│   ├── navigation/ navigator.py
-│   ├── runtime/ app.py
-│   └── gui/     app.py  map_canvas.py  panels.py
-└── tests/  (17 test files, 43 assertions)
-```
-
----
-
-## Running Tests
+### With a native ROS 2 Humble install (Ubuntu 22.04)
 
 ```bash
-make test           # full suite including slow estimation tests
-make test-fast      # skip tests marked @pytest.mark.slow
+mkdir -p ~/amr_ws/src && cp -r . ~/amr_ws/   # this repo is a colcon workspace
+cd ~/amr_ws
+source /opt/ros/humble/setup.bash
+colcon build
+colcon test && colcon test-result --all
 ```
 
-The test runner invokes pytest inside the venv:
+### With Docker (no local ROS needed)
 
 ```bash
-.venv/bin/python -m pytest -q
+docker build -f docker/humble.Dockerfile -t amr_stack:humble .
+docker run --rm amr_stack:humble        # builds + runs all tests
 ```
 
-See `docs/user_guide.md` for troubleshooting, GUI walkthrough, and deployment instructions.
+### On a host without native Humble (RoboStack / micromamba)
+
+```bash
+micromamba create -n ros2_humble -c robostack-staging ros-humble-desktop
+micromamba run -n ros2_humble bash -c 'unset PYTHONPATH && colcon build && colcon test'
+```
+
+## Run the demo
+
+```bash
+# SLAM: drive the robot, build a map live, save it.
+ros2 launch amr_bringup slam.launch.py
+
+# NAV: localize on a prebuilt map and navigate to goals (RViz "2D Goal Pose").
+ros2 launch amr_bringup nav.launch.py map_file:=<path-to-map.yaml>
+```
+
+Render a perfect map straight from a world file (handy for NAV without SLAM):
+
+```bash
+ros2 run amr_sim world_to_map src/amr_bringup/config/office.world.yaml office_map
+```
+
+## Verification
+
+The build gate is: **full workspace builds + all gtest unit tests pass + the
+launch_testing integration tests pass.** The integration tests
+(`amr_bringup/test/`) are the ROS 2 analogue of the Python `amr demo` → DEMO PASS:
+
+- `test_slam.py` — sim + SLAM build a map of the office and save a valid map
+  (asserting the saved PGM has real walls and interior).
+- `test_nav.py` — sim + map_publisher + MCL + navigator localize on a known map
+  and drive a **full-office goal tour**: west-room north → middle room (through the
+  wall-A door gap) → east room (through the wall-B gap), asserting each goal is
+  reached with ground-truth error < 0.6 m and no collision.
+
+Verified in the RoboStack `ros2_humble` environment:
+
+```
+43/43 gtest unit tests pass (amr_core, sim, mapping, localization, slam, planning, navigation)
+test_slam : office map built + saved (occupied + free cells present)
+test_nav  : 3/3 goals SUCCEEDED — GT error ~0.25 m each, no collision
+```
+
+## Scope & limitations
+
+This is a compact, dependency-light **educational** stack — a faithful, readable
+port of the reference algorithms, not a hardened production navigation system. It
+runs entirely in its own 2-D simulator (no Gazebo/hardware drivers). The MCL is a
+basic fixed-size likelihood-field filter seeded from a known start pose; global
+("kidnapped robot") recovery, KLD-adaptive resampling, and dynamic-obstacle
+avoidance are intentionally out of scope and are natural extensions (see
+[`EXTENDING.md`](EXTENDING.md)). All tuning lives in `amr_bringup/config/amr.yaml`.
+
+## License
+
+[Apache-2.0](LICENSE) © 2026 Kang Jung Mo.

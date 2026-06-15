@@ -1,0 +1,127 @@
+# AMR Stack — unified ROS 2 parameter file.
+# Values mirror amr_core::*Config struct defaults (config.hpp).
+# All nodes load this file via the 'config_file' param; individual ROS params
+# declared by each node are additionally listed here so rclcpp can resolve them.
+#
+# SPDX-License-Identifier: Apache-2.0
+
+/**:
+  ros__parameters:
+    seed: 42
+
+# ── sim_node ────────────────────────────────────────────────────────────────
+sim_node:
+  ros__parameters:
+    seed: 42
+    # world_file is supplied as an absolute path by the launch files and the
+    # integration test (resolved from this package's share/config dir). It is
+    # intentionally NOT set here, since a relative path does not resolve at
+    # ROS launch time (cwd is not the source tree).
+
+    robot.radius:       0.18
+    robot.max_lin_vel:  0.6
+    robot.max_ang_vel:  1.8
+    robot.max_lin_acc:  0.8
+    robot.max_ang_acc:  2.5
+
+    lidar.num_beams:    240
+    lidar.angle_min:   -3.141592653589793
+    lidar.angle_max:    3.141592653589793
+    lidar.range_min:    0.12
+    lidar.range_max:    8.0
+    lidar.noise_std:    0.01
+    lidar.scan_every:   2
+
+    sim.dt:             0.05
+    sim.odom_noise.alpha_v: 0.03
+    sim.odom_noise.alpha_w: 0.03
+    sim.odom_noise.floor:   0.0001
+
+# ── slam_node ────────────────────────────────────────────────────────────────
+slam_node:
+  ros__parameters:
+    seed: 42
+
+    mapping.resolution:      0.05
+    mapping.l_occ:           0.85
+    mapping.l_free:         -0.4
+    mapping.l_clamp:         10.0
+    mapping.occupied_thresh: 0.65
+    mapping.free_thresh:     0.25
+    mapping.beam_subsample:  2
+
+    slam.keyframe_trans:     0.2
+    slam.keyframe_rot:       0.35
+    slam.min_motion:         0.02
+    slam.match_beams:        80
+    slam.coarse_window_xy:   0.15
+    slam.coarse_step_xy:     0.05
+    slam.coarse_window_theta: 0.12
+    slam.coarse_step_theta:  0.03
+    slam.fine_step_xy:       0.025
+    slam.fine_step_theta:    0.01
+    slam.blur_sigma_cells:   1.5
+    slam.min_match_score:    0.1
+
+# ── map_publisher ────────────────────────────────────────────────────────────
+map_publisher:
+  ros__parameters:
+    # 'map_yaml' (the map YAML path: output of /save_map or amr_sim world_to_map)
+    # is intentionally NOT defaulted here — it is required and supplied at launch
+    # time, so an empty default cannot silently shadow the launch value.
+    frame_id: "map"
+
+# ── mcl_node ────────────────────────────────────────────────────────────────
+mcl_node:
+  ros__parameters:
+    seed: 42
+
+    localization.num_particles:       500
+    localization.alphas:              [0.05, 0.05, 0.05, 0.05]
+    localization.init_std:            [0.25, 0.25, 0.15]
+    localization.resample_neff_frac:  0.5
+
+    localization.likelihood.sigma_hit:    0.2
+    localization.likelihood.z_hit:        0.9
+    localization.likelihood.z_rand:       0.1
+    localization.likelihood.max_dist:     2.0
+    localization.likelihood.beam_subsample: 5
+
+    # Initial-pose seeding. For NAV from a known start (e.g. the sim spawn) keep
+    # use_initial_pose=true and set the pose; for true global localization set
+    # use_initial_pose=false (uniform particle init over free space).
+    use_initial_pose:   true
+    initial_pose_x:     1.5
+    initial_pose_y:     1.5
+    initial_pose_theta: 0.0
+
+# ── navigator_node ───────────────────────────────────────────────────────────
+navigator_node:
+  ros__parameters:
+    robot.radius: 0.18
+
+    planning.costmap.occupied_thresh:  65
+    planning.costmap.unknown_is_lethal: true
+    planning.costmap.inflation_radius:  0.45
+    planning.costmap.cost_decay:        6.0
+
+    planning.astar.w_cost:    4.0
+    planning.astar.simplify:  true
+
+    planning.dwa.sim_time:     1.5
+    planning.dwa.sim_dt:       0.1
+    planning.dwa.v_samples:    8
+    planning.dwa.w_samples:    15
+    planning.dwa.lookahead:    0.8
+    planning.dwa.w_progress:   1.0
+    planning.dwa.w_heading:    0.6
+    planning.dwa.w_clearance:  0.4
+    planning.dwa.w_velocity:   0.3
+
+    nav.goal_tol_xy:            0.25
+    nav.replan_period:          4.0
+    nav.path_block_check_dist:  1.0
+    nav.max_recoveries:         3
+    nav.recovery_rotate_speed:  0.8
+    nav.recovery_backup_dist:   0.3
+    nav.recovery_backup_speed:  0.1

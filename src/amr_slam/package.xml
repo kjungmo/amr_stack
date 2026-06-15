@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>amr_slam</name>
+  <version>0.1.0</version>
+  <description>
+    Correlative scan-matching SLAM for the AMR stack (C++/ROS 2 port of
+    amr/slam). Library: a 2D SLAM front-end that fuses odometry increments with
+    a two-stage correlative scan match against a blurred occupancy score map
+    derived from a keyframed log-odds map (amr_mapping). Node: slam_node wraps
+    the library, publishes the live /map and the map->odom correction, and
+    serves /save_map.
+  </description>
+  <maintainer email="kangjmo91@gmail.com">Kang Jung Mo</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>amr_core</depend>
+  <depend>amr_mapping</depend>
+  <depend>amr_interfaces</depend>
+  <depend>rclcpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>tf2</depend>
+  <depend>tf2_ros</depend>
+  <depend>tf2_geometry_msgs</depend>
+
+  <test_depend>ament_cmake_gtest</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

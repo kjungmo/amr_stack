@@ -1,0 +1,16 @@
+# Office world definition — copied from amr_stack/configs/worlds/office.yaml.
+# SPDX-License-Identifier: Apache-2.0
+size: [12.0, 9.0]
+resolution: 0.05
+spawn: {x: 1.5, y: 1.5, theta: 0.0}
+obstacles:
+  - {type: rect, x: 0.0,   y: 0.0,  w: 12.0, h: 0.15}   # south wall
+  - {type: rect, x: 0.0,   y: 8.85, w: 12.0, h: 0.15}   # north wall
+  - {type: rect, x: 0.0,   y: 0.0,  w: 0.15, h: 9.0}    # west wall
+  - {type: rect, x: 11.85, y: 0.0,  w: 0.15, h: 9.0}    # east wall
+  - {type: rect, x: 4.0,   y: 0.0,  w: 0.15, h: 5.5}    # wall A (door gap y 5.5–7.0)
+  - {type: rect, x: 4.0,   y: 7.0,  w: 0.15, h: 1.85}   # wall A upper
+  - {type: rect, x: 8.0,   y: 3.5,  w: 0.15, h: 5.35}   # wall B (gap south, y < 3.5)
+  - {type: rect, x: 5.3,   y: 6.0,  w: 1.4,  h: 0.8}    # table
+  - {type: circle, x: 3.3, y: 3.5,  r: 0.3}             # pillar west room
+  - {type: circle, x: 9.8, y: 6.5,  r: 0.3}             # pillar east room

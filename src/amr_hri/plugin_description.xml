@@ -1,0 +1,11 @@
+<library path="amr_hri">
+  <class
+    name="amr_hri/AmrConsole"
+    type="amr_hri::AmrConsolePanel"
+    base_class_type="rviz_common::Panel">
+    <description>
+      AMR Console — send navigation goals, toggle E-STOP, and monitor the
+      navigator's FSM state. RViz2 replacement for the tkinter HRI GUI.
+    </description>
+  </class>
+</library>

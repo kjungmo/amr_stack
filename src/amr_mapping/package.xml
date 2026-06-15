@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>amr_mapping</name>
+  <version>0.1.0</version>
+  <description>
+    Occupancy-grid mapping for the AMR stack (C++/ROS 2 port of amr/mapping).
+    Library: ROS map_server PGM/YAML map I/O + log-odds occupancy-grid mapper.
+    Node: map_publisher latches a static /map loaded from a map YAML.
+  </description>
+  <maintainer email="kangjmo91@gmail.com">Kang Jung Mo</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>amr_core</depend>
+  <depend>rclcpp</depend>
+  <depend>nav_msgs</depend>
+
+  <test_depend>ament_cmake_gtest</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

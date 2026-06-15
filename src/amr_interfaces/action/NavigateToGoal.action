@@ -1,0 +1,8 @@
+geometry_msgs/PoseStamped goal
+---
+bool success
+float64 final_error      # metres from final pose to goal (eval)
+string final_state       # SUCCEEDED | FAILED
+---
+string state             # IDLE|PLANNING|FOLLOWING|RECOVERY|SUCCEEDED|FAILED
+float64 distance_remaining
