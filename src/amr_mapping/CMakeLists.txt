@@ -13,6 +13,7 @@ find_package(ament_cmake REQUIRED)
 find_package(amr_core REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(nav_msgs REQUIRED)
+find_package(amr_api REQUIRED)
 
 # ---------------------------------------------------------------------------
 # Algorithm library (node-free, unit-testable): map_io + log-odds mapper.
@@ -26,7 +27,7 @@ target_include_directories(amr_mapping_lib PUBLIC
   "$<INSTALL_INTERFACE:include>"
 )
 target_compile_features(amr_mapping_lib PUBLIC cxx_std_17)
-ament_target_dependencies(amr_mapping_lib amr_core)
+ament_target_dependencies(amr_mapping_lib amr_core amr_api)
 
 # ---------------------------------------------------------------------------
 # Thin ROS node: map_publisher.
@@ -50,7 +51,7 @@ install(TARGETS map_publisher
 )
 
 ament_export_targets(export_amr_mapping HAS_LIBRARY_TARGET)
-ament_export_dependencies(amr_core rclcpp nav_msgs)
+ament_export_dependencies(amr_core rclcpp nav_msgs amr_api)
 ament_export_include_directories(include)
 
 # ---------------------------------------------------------------------------
@@ -66,6 +67,10 @@ if(BUILD_TESTING)
   ament_add_gtest(test_mapper test/test_mapper.cpp)
   target_link_libraries(test_mapper amr_mapping_lib)
   ament_target_dependencies(test_mapper amr_core)
+
+  ament_add_gtest(test_mapper_adapter test/test_mapper_adapter.cpp)
+  target_link_libraries(test_mapper_adapter amr_mapping_lib)
+  ament_target_dependencies(test_mapper_adapter amr_core amr_api)
 endif()
 
 ament_package()

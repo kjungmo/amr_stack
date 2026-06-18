@@ -1,11 +1,12 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>amr_navigation</name>
+  <name>amr_api</name>
   <version>0.1.0</version>
   <description>
-    Goal-driven navigation FSM (IDLE/PLANNING/FOLLOWING/RECOVERY/SUCCEEDED/FAILED)
-    and the navigator_node action server. Ports amr/navigation/navigator.py.
+    Node-free interface layer that standardizes AMR-stack module I/O so an
+    external orchestrator ("core") can drive SLAM, localization, mapping,
+    planning and navigation through stable pure-data interfaces.
   </description>
   <maintainer email="kangjmo91@gmail.com">Kang Jung Mo</maintainer>
   <license>Apache-2.0</license>
@@ -13,16 +14,6 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>amr_core</depend>
-  <depend>amr_planning</depend>
-  <depend>amr_api</depend>
-  <depend>amr_interfaces</depend>
-  <depend>rclcpp</depend>
-  <depend>rclcpp_action</depend>
-  <depend>nav_msgs</depend>
-  <depend>geometry_msgs</depend>
-  <depend>tf2</depend>
-  <depend>tf2_ros</depend>
-  <depend>tf2_geometry_msgs</depend>
 
   <test_depend>ament_cmake_gtest</test_depend>
 

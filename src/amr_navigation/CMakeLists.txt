@@ -12,6 +12,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(amr_core REQUIRED)
 find_package(amr_planning REQUIRED)
+find_package(amr_api REQUIRED)
 find_package(amr_interfaces REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
@@ -24,13 +25,14 @@ find_package(tf2_geometry_msgs REQUIRED)
 # --- Algorithm library (the FSM; node-free, unit-testable standalone) ---
 add_library(amr_navigation
   src/navigator.cpp
+  src/navigator_behavior.cpp
 )
 target_include_directories(amr_navigation PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>"
 )
 target_compile_features(amr_navigation PUBLIC cxx_std_17)
-ament_target_dependencies(amr_navigation amr_core amr_planning)
+ament_target_dependencies(amr_navigation amr_core amr_planning amr_api)
 
 install(DIRECTORY include/ DESTINATION include)
 install(TARGETS amr_navigation
@@ -41,7 +43,7 @@ install(TARGETS amr_navigation
 )
 
 ament_export_targets(export_amr_navigation HAS_LIBRARY_TARGET)
-ament_export_dependencies(amr_core amr_planning)
+ament_export_dependencies(amr_core amr_planning amr_api)
 ament_export_include_directories(include)
 
 # --- ROS node: thin rclcpp wrapper around the library ---
@@ -70,6 +72,10 @@ if(BUILD_TESTING)
   ament_add_gtest(test_navigator test/test_navigator.cpp)
   target_link_libraries(test_navigator amr_navigation)
   ament_target_dependencies(test_navigator amr_core amr_planning)
+
+  ament_add_gtest(test_navigator_behavior test/test_navigator_behavior.cpp)
+  target_link_libraries(test_navigator_behavior amr_navigation)
+  ament_target_dependencies(test_navigator_behavior amr_core amr_planning amr_api)
 endif()
 
 ament_package()

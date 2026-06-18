@@ -11,19 +11,23 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(amr_core REQUIRED)
+find_package(amr_api REQUIRED)
 
 # --- Algorithm library (no ROS node; unit-testable standalone) ---
 add_library(amr_planning
   src/costmap.cpp
   src/astar.cpp
   src/dwa.cpp
+  src/costmap_adapter.cpp
+  src/global_planner_adapter.cpp
+  src/local_planner_adapter.cpp
 )
 target_include_directories(amr_planning PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>"
 )
 target_compile_features(amr_planning PUBLIC cxx_std_17)
-ament_target_dependencies(amr_planning amr_core)
+ament_target_dependencies(amr_planning amr_core amr_api)
 
 install(DIRECTORY include/ DESTINATION include)
 install(TARGETS amr_planning
@@ -34,7 +38,7 @@ install(TARGETS amr_planning
 )
 
 ament_export_targets(export_amr_planning HAS_LIBRARY_TARGET)
-ament_export_dependencies(amr_core)
+ament_export_dependencies(amr_core amr_api)
 ament_export_include_directories(include)
 
 if(BUILD_TESTING)
@@ -42,6 +46,9 @@ if(BUILD_TESTING)
   ament_add_gtest(test_planning test/test_planning.cpp)
   target_link_libraries(test_planning amr_planning)
   ament_target_dependencies(test_planning amr_core)
+  ament_add_gtest(test_planning_adapters test/test_planning_adapters.cpp)
+  target_link_libraries(test_planning_adapters amr_planning)
+  ament_target_dependencies(test_planning_adapters amr_core amr_api)
 endif()
 
 ament_package()

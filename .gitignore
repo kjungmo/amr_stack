@@ -3,3 +3,8 @@ install/
 log/
 __pycache__/
 *.pyc
+
+# build / runtime artifacts
+.venv/
+*.egg-info/
+logs/

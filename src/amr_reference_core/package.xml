@@ -1,13 +1,12 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>amr_localization</name>
+  <name>amr_reference_core</name>
   <version>0.1.0</version>
   <description>
-    Monte-Carlo localization for the AMR stack (C++/ROS 2 port of
-    amr/localization). Library: Thrun odometry motion model, likelihood-field
-    sensor model, and an adaptive particle filter (MCL). Node: mcl_node wraps
-    the library and publishes the map->odom correction.
+    Reference orchestrator ("core") demonstrating how to drive the AMR stack
+    modules through the amr_api interfaces. Header-only CoreBus blackboard plus a
+    worked-example gtest that wires the adapters end to end.
   </description>
   <maintainer email="kangjmo91@gmail.com">Kang Jung Mo</maintainer>
   <license>Apache-2.0</license>
@@ -16,13 +15,11 @@
 
   <depend>amr_core</depend>
   <depend>amr_api</depend>
-  <depend>rclcpp</depend>
-  <depend>sensor_msgs</depend>
-  <depend>nav_msgs</depend>
-  <depend>geometry_msgs</depend>
-  <depend>tf2</depend>
-  <depend>tf2_ros</depend>
-  <depend>tf2_geometry_msgs</depend>
+  <depend>amr_mapping</depend>
+  <depend>amr_localization</depend>
+  <depend>amr_slam</depend>
+  <depend>amr_planning</depend>
+  <depend>amr_navigation</depend>
 
   <test_depend>ament_cmake_gtest</test_depend>
 

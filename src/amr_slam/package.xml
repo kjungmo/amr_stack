@@ -18,6 +18,7 @@
 
   <depend>amr_core</depend>
   <depend>amr_mapping</depend>
+  <depend>amr_api</depend>
   <depend>amr_interfaces</depend>
   <depend>rclcpp</depend>
   <depend>sensor_msgs</depend>

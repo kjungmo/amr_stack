@@ -11,6 +11,7 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(amr_core REQUIRED)
+find_package(amr_api REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
@@ -30,7 +31,7 @@ target_include_directories(amr_localization_lib PUBLIC
   "$<INSTALL_INTERFACE:include>"
 )
 target_compile_features(amr_localization_lib PUBLIC cxx_std_17)
-ament_target_dependencies(amr_localization_lib amr_core)
+ament_target_dependencies(amr_localization_lib amr_core amr_api)
 
 # ---- mcl_node executable (thin rclcpp wrapper) ----------------------------
 add_executable(mcl_node src/mcl_node.cpp)
@@ -58,7 +59,7 @@ install(TARGETS mcl_node
 )
 
 ament_export_targets(export_amr_localization HAS_LIBRARY_TARGET)
-ament_export_dependencies(amr_core)
+ament_export_dependencies(amr_core amr_api)
 ament_export_include_directories(include)
 
 if(BUILD_TESTING)
@@ -66,6 +67,10 @@ if(BUILD_TESTING)
   ament_add_gtest(test_localization test/test_localization.cpp)
   target_link_libraries(test_localization amr_localization_lib)
   ament_target_dependencies(test_localization amr_core)
+
+  ament_add_gtest(test_mcl_adapter test/test_mcl_adapter.cpp)
+  target_link_libraries(test_mcl_adapter amr_localization_lib)
+  ament_target_dependencies(test_mcl_adapter amr_core amr_api)
 endif()
 
 ament_package()

@@ -9,6 +9,8 @@ in `main`.
 Target: **ROS 2 Humble** (this branch). The `jazzy` branch is this workspace with
 the Humble→Jazzy deltas in §10 applied.
 
+**CONTRACT_VERSION:** 1.0 (see §11 for the `amr_api` binding).
+
 ---
 
 ## 1. Workspace layout & dependency graph
@@ -16,6 +18,7 @@ the Humble→Jazzy deltas in §10 applied.
 ```
 ros2_ws/src/
   amr_core          lib: geometry, types, config (yaml-cpp)         [deps: yaml-cpp]
+  amr_api           lib: module interfaces + adapters seam (node-free)  [deps: amr_core]
   amr_interfaces    msgs/srv/action                                 [deps: rosidl, std/geometry_msgs]
   amr_sim           node: simulator                                 [amr_core, sensor/nav/geometry_msgs, tf2_ros]
   amr_mapping       lib: map_io + log-odds mapper; node: map_publisher [amr_core, nav_msgs]
@@ -25,6 +28,7 @@ ros2_ws/src/
   amr_navigation    node: navigator (FSM + action server)          [amr_core, amr_planning, amr_interfaces, nav/geometry_msgs, tf2_ros]
   amr_bringup       launch + params + rviz                         [all nodes; ament_cmake, launch_testing]
   amr_hri           rviz panel plugin (HRI)                         [rviz_common, pluginlib, amr_interfaces]
+  amr_reference_core demo: wires the adapters as a reference orchestrator   [all module libs, amr_api]
 ```
 
 Dependencies are strictly one-way and downward. Each package builds against
@@ -213,4 +217,30 @@ Also ship `docker/humble.Dockerfile` (FROM `osrf/ros:humble-desktop`) + a
 - RViz plugin API (`rviz_common::Panel`) unchanged across the two.
 - Verify on Jazzy via the shipped `docker/jazzy.Dockerfile`; on this box the Jazzy
   branch is static-validated (no Jazzy env on Ubuntu 20.04).
-```
+
+---
+
+## 11. amr_api data model ↔ ROS topic mapping (CONTRACT_VERSION 1.0)
+
+`amr_api` (version 0.1.0) standardizes module I/O as pure data. A `core` running
+as or beside a node maps that data onto the frozen §4 topics; the ROS nodes
+themselves are unchanged ("freeze + version"). Each node logs `amr_api::VERSION`
++ `CONTRACT_VERSION` once at startup.
+
+| amr_api datum | ROS topic (§4) | Direction |
+|---|---|---|
+| `SlamInput.scan` / `LocalizerInput.scan` / `MapperInput.scan` | `/scan` | in |
+| `*.odom_delta` (derived between consecutive `/odom`) | `/odom` | in |
+| `ISlam::map()` / `IMapper::map()` | `/map` | out |
+| `LocalizerOutput.pose` | `/pose` | out |
+| `LocalizerOutput.cloud` | `/particles` | out |
+| `BehaviorOutput.cmd` | `/cmd_vel` | out |
+| `BehaviorOutput.plan` | `/plan` | out |
+| `IBehavior::set_goal` | `/goal_pose` | in |
+
+The six interfaces (`ISlam`, `ILocalizer`, `IMapper`, `IGlobalPlanner`,
+`ILocalPlanner`, `IBehavior`) live in `amr_api`; each module package ships a thin
+adapter that delegates to its existing, gtest-verified class. Coordinate/units/
+occupancy conventions (§2) and QoS (§4) are unchanged; the adapters carry
+`amr_core` types, so no conversion semantics are added. See
+`src/amr_api/README.md` and `docs/CORE_INTEGRATION.md`.

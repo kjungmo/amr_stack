@@ -13,6 +13,7 @@ find_package(ament_cmake REQUIRED)
 find_package(amr_core REQUIRED)
 find_package(amr_mapping REQUIRED)
 find_package(amr_interfaces REQUIRED)
+find_package(amr_api REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
@@ -32,7 +33,7 @@ target_include_directories(amr_slam_lib PUBLIC
   "$<INSTALL_INTERFACE:include>"
 )
 target_compile_features(amr_slam_lib PUBLIC cxx_std_17)
-ament_target_dependencies(amr_slam_lib amr_core amr_mapping)
+ament_target_dependencies(amr_slam_lib amr_core amr_mapping amr_api)
 
 # ---------------------------------------------------------------------------
 # Thin ROS node: slam_node.
@@ -67,7 +68,7 @@ install(TARGETS slam_node
 )
 
 ament_export_targets(export_amr_slam HAS_LIBRARY_TARGET)
-ament_export_dependencies(amr_core amr_mapping)
+ament_export_dependencies(amr_core amr_mapping amr_api)
 ament_export_include_directories(include)
 
 # ---------------------------------------------------------------------------
@@ -79,6 +80,10 @@ if(BUILD_TESTING)
   ament_add_gtest(test_scan_matching_slam test/test_scan_matching_slam.cpp)
   target_link_libraries(test_scan_matching_slam amr_slam_lib)
   ament_target_dependencies(test_scan_matching_slam amr_core amr_mapping)
+
+  ament_add_gtest(test_slam_adapter test/test_slam_adapter.cpp)
+  target_link_libraries(test_slam_adapter amr_slam_lib)
+  ament_target_dependencies(test_slam_adapter amr_core amr_mapping amr_api)
 endif()
 
 ament_package()
